@@ -17,9 +17,7 @@ func CreateTodo(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	fmt.Println(todoinput)
-	todo := models.Todo{Title: todoinput.Title, IsComplete: todoinput.IsComplete}
+	todo := models.Todo{Title: todoinput.Title, IsComplete: todoinput.IsComplete, UserId: c.GetInt("user_id")}
 
 	err := db.Db.Create(&todo).Error
 	if err != nil {
@@ -31,7 +29,7 @@ func CreateTodo(c *gin.Context) {
 func GetTodos(c *gin.Context) {
 
 	var todos []models.Todo
-	err := db.Db.Find(&todos).Error
+	err := db.Db.Where("user_id=?", c.GetInt("user_id")).Find(&todos).Error
 	if err != nil {
 		return
 	}
@@ -40,7 +38,7 @@ func GetTodos(c *gin.Context) {
 
 func GetTodoById(c *gin.Context) {
 	var todo models.Todo
-	if err := db.Db.Where("id=?", c.Param("id")).First(&todo).Error; err != nil {
+	if err := db.Db.Where("user_id=?", c.GetInt("user_id")).Where("id=?", c.Param("id")).First(&todo).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"message": "Todo Not Found"})
 		return
 	}
@@ -54,7 +52,7 @@ func UpdateTodo(c *gin.Context) {
 		return
 	}
 	var dbTodo models.Todo
-	if err := db.Db.Where("id=?", todo.Id).First(&dbTodo).Error; err != nil {
+	if err := db.Db.Where("user_id=?", c.GetInt("user_id")).Where("id=?", todo.Id).First(&dbTodo).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
@@ -67,8 +65,12 @@ func UpdateTodo(c *gin.Context) {
 }
 
 func DeleteTodo(c *gin.Context) {
-
-	if err := db.Db.Raw("DELETE FROM todos WHERE id=?", c.Param("id")).Error; err != nil {
+	var todo models.Todo
+	if err := db.Db.Where("user_id=?", c.GetInt("user_id")).Where("id=?", c.Param("id")).First(&todo).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+	if err := db.Db.Delete(&todo).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}

@@ -33,4 +33,6 @@ func InitDb() {
 	}
 	dasb.Close()
 	Db.AutoMigrate(&models.Todo{})
+	Db.AutoMigrate(&models.User{})
+	Db.AutoMigrate(&models.Session{})
 }
