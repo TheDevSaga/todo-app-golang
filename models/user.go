@@ -19,7 +19,7 @@ type LoginRequest struct {
 
 type Session struct {
 	SessionKey string `gorm:"primary_key"`
-	UserId     int
+	UserId     int    `json:"-"`
 }
 
 func (user *User) CreateSession(db *gorm.DB) (*Session, error) {
