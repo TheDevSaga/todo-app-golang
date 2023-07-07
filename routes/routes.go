@@ -9,15 +9,25 @@ import (
 func InitRoutes() {
 
 	router := gin.Default()
-	router.POST("/api/v1/login/", controllers.Login)
-	router.POST("/api/v1/sign_up/", controllers.SignUP)
+	api := router.Group("api")
+	{
+		auth := api.Group("v1/auth")
+		{
+			auth.POST("/login/", controllers.Login)
+			auth.POST("/sign_up/", controllers.SignUP)
+		}
 
-	router.Use(middlewares.AuthMiddleWare())
-	router.GET("/api/v1/tasks/", controllers.GetTodos)
-	router.POST("/api/v1/tasks/", controllers.CreateTodo)
-	router.GET("/api/v1/tasks/:id", controllers.GetTodoById)
-	router.PUT("/api/v1/tasks/", controllers.UpdateTodo)
-	router.DELETE("/api/v1/tasks/:id", controllers.DeleteTodo)
+		api.Use(middlewares.AuthMiddleWare())
+		task := api.Group("/v1/tasks")
+		{
+			task.GET("/", controllers.GetTodos)
+			task.POST("/", controllers.CreateTodo)
+			task.GET("/:id", controllers.GetTodoById)
+			task.PUT("/", controllers.UpdateTodo)
+			task.DELETE("/:id", controllers.DeleteTodo)
+		}
+
+	}
 
 	router.Run("localhost:3000")
 }
